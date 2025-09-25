@@ -1,19 +1,10 @@
-# Minimal requirements for Netlify deployment
+# Ultra-minimal requirements for Streamlit Cloud
 streamlit
-pandas
+pandas>=2.2.0
 numpy>=1.25.0
 python-dotenv
 requests
 beautifulsoup4
-scikit-learn
-
-# AI/ML dependencies
-sentence-transformers
-faiss-cpu
-groq
-tiktoken
-
-# Gemini API
 google-generativeai
 google-auth
 google-auth-oauthlib
