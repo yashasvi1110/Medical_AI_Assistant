@@ -1,5 +1,5 @@
 [build]
-  command = "pip install -r requirements.txt && streamlit run Medical_AI_Assistant.py"
+  command = "pip install -r requirements-minimal.txt && streamlit run Medical_AI_Assistant.py"
   functions = "netlify/functions"
 
 [build.environment]

@@ -1,0 +1,20 @@
+# Simplified requirements for Netlify deployment
+streamlit>=1.28.0
+pandas>=2.1.0
+numpy>=1.25.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+scikit-learn>=1.3.0
+
+# AI/ML dependencies
+sentence-transformers>=2.2.0
+faiss-cpu>=1.9.0
+groq>=0.4.0
+tiktoken>=0.5.0
+
+# Gemini API
+google-generativeai>=0.8.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.2.0
