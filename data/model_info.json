@@ -1,0 +1,5 @@
+{
+  "model_name": "tfidf",
+  "dimension": 1000,
+  "num_vectors": 15
+}
