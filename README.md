@@ -9,7 +9,7 @@ A Retrieval-Augmented Generation (RAG) based Medical AI Assistant that provides 
 ## 🏥 Features
 
 - **RAG-based Architecture**: Uses Retrieval-Augmented Generation for accurate medical information
-- **Gemini 1.5 Flash Integration**: Powered by Google's Gemini API for response generation
+- **Openrouter API (Gemini 1.5 Flash) Integration**: Powered by Google's Gemini API for response generation
 - **Medical Scope Limitation**: Only answers medical-related questions
 - **Safety Disclaimers**: Includes appropriate medical disclaimers
 - **Vector Search**: Uses FAISS for efficient similarity search
@@ -44,7 +44,7 @@ Medical_AI_Assistant/
 ### Prerequisites
 
 - Python 3.8+
-- Gemini API key
+- openrouter(Gemini API key)
 
 ### Installation
 
@@ -69,7 +69,7 @@ Medical_AI_Assistant/
    ```
 
 5. **Open in browser**
-   - Navigate to `http://localhost:8503`
+   - Navigate to `http://localhost:8501`
    - Start asking medical questions!
 
 ## 🔧 Setup Instructions
@@ -220,5 +220,6 @@ For issues and questions:
 - Review the example responses in `examples/sample_responses.md`
 
 ---
+
 
 **Remember**: This assistant provides general health information only. For any medical concerns, please consult a qualified healthcare provider.
