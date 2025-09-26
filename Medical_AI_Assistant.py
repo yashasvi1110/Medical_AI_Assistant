@@ -18,10 +18,10 @@ class FixedRAGGeminiMedicalChatbot:
         """Initialize the fixed RAG Gemini medical chatbot."""
         self.disclaimer = "⚠️ **IMPORTANT DISCLAIMER**: I am not a medical professional. For diagnosis or treatment, consult a qualified healthcare provider."
         
-        # Your Gemini API key - Replace with your actual API key
-        self.api_key = os.getenv("GEMINI_API_KEY", "AIzaSyDU1AlMjYpUTYsq44eWzboV3Km4fQ-5SrU")
-        self.model_name = "gemini-1.5-flash"
-        self.available_models = ["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro", "gemini-1.5-flash-001"]
+        # Your OpenRouter API key - Replace with your actual API key
+        self.api_key = os.getenv("OPENROUTER_API_KEY", "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")
+        self.model_name = "meta-llama/llama-3.1-8b-instruct"
+        self.available_models = ["meta-llama/llama-3.1-8b-instruct", "google/gemini-flash-1.5", "anthropic/claude-3-haiku", "microsoft/phi-3-mini-128k-instruct"]
         
         # Medical knowledge base for RAG
         self.medical_knowledge = {
@@ -464,71 +464,64 @@ class FixedRAGGeminiMedicalChatbot:
         
         return "General medical information"
     
-    def call_gemini_api(self, prompt: str) -> str:
-        """Call Gemini API using urllib with multiple model fallbacks."""
+    def call_openrouter_api(self, prompt: str) -> str:
+        """Call OpenRouter API using urllib."""
         data = {
-            "contents": [{
-                "parts": [{
-                    "text": prompt
-                }]
-            }]
+            "model": self.model_name,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "max_tokens": 1000,
+            "temperature": 0.7
         }
         
         # Convert data to JSON
         json_data = json.dumps(data).encode('utf-8')
         
-        # Try different API endpoints
-        endpoints = [
-            "https://generativelanguage.googleapis.com/v1beta/models",
-            "https://generativelanguage.googleapis.com/v1/models"
-        ]
+        # OpenRouter API endpoint
+        url = "https://openrouter.ai/api/v1/chat/completions"
         
-        # Try each endpoint with each model
-        for endpoint in endpoints:
-            for model in self.available_models:
+        try:
+            # Create request
+            req = urllib.request.Request(
+                url,
+                data=json_data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.api_key}',
+                    'HTTP-Referer': 'http://localhost:8501',
+                    'X-Title': 'Medical AI Assistant'
+                }
+            )
+            
+            # Make request
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                return result['choices'][0]['message']['content']
+                
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
+                return f"API Error: Unauthorized. Please check your OpenRouter API key."
+            elif e.code == 403:
+                return f"API Error: Forbidden. Please check your API key permissions."
+            elif e.code == 400:
                 try:
-                    url = f"{endpoint}/{model}:generateContent"
-                    
-                    # Create request
-                    req = urllib.request.Request(
-                        f"{url}?key={self.api_key}",
-                        data=json_data,
-                        headers={'Content-Type': 'application/json'}
-                    )
-                    
-                    # Make request
-                    with urllib.request.urlopen(req) as response:
-                        result = json.loads(response.read().decode('utf-8'))
-                        # Update the working model name
-                        self.model_name = model
-                        return result['candidates'][0]['content']['parts'][0]['text']
-                        
-                except urllib.error.HTTPError as e:
-                    error_details = f"Model: {model}, Endpoint: {endpoint}, Code: {e.code}"
-                    if e.code == 404:
-                        # Try next model
-                        continue
-                    elif e.code == 403:
-                        return f"API Error: Permission denied. {error_details}. Please check your API key permissions."
-                    elif e.code == 400:
-                        try:
-                            error_body = e.read().decode('utf-8')
-                            return f"API Error: Bad request. {error_details}. Response: {error_body}"
-                        except:
-                            return f"API Error: Bad request. {error_details}. Please check your API key and request format."
-                    else:
-                        return f"API Error: {e.code} - {error_details}. {str(e)}"
-                except Exception as e:
-                    # Try next model
-                    continue
-        
-        # If all models and endpoints failed
-        return f"API Error: All models and endpoints unavailable. Please check your API key and internet connection."
+                    error_body = e.read().decode('utf-8')
+                    return f"API Error: Bad request. Response: {error_body}"
+                except:
+                    return f"API Error: Bad request. Please check your API key and request format."
+            else:
+                return f"API Error: {e.code} - {str(e)}"
+        except Exception as e:
+            return f"API Error: {str(e)}"
     
     def test_api_key(self) -> Dict[str, Any]:
         """Test if the API key is valid by making a simple request."""
         test_prompt = "Hello"
-        response = self.call_gemini_api(test_prompt)
+        response = self.call_openrouter_api(test_prompt)
         
         if "API Error" in response or "Error calling Gemini API" in response:
             return {
@@ -547,25 +540,28 @@ class FixedRAGGeminiMedicalChatbot:
         """Make a simple test call to verify API connectivity."""
         try:
             # Test with a very simple request
-            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+            url = "https://openrouter.ai/api/v1/chat/completions"
             data = {
-                "contents": [{
-                    "parts": [{
-                        "text": "Hi"
-                    }]
-                }]
+                "model": self.model_name,
+                "messages": [{"role": "user", "content": "Hi"}],
+                "max_tokens": 50
             }
             
             json_data = json.dumps(data).encode('utf-8')
             req = urllib.request.Request(
-                f"{url}?key={self.api_key}",
+                url,
                 data=json_data,
-                headers={'Content-Type': 'application/json'}
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.api_key}',
+                    'HTTP-Referer': 'http://localhost:8501',
+                    'X-Title': 'Medical AI Assistant'
+                }
             )
             
             with urllib.request.urlopen(req) as response:
                 result = json.loads(response.read().decode('utf-8'))
-                return f"SUCCESS: {result['candidates'][0]['content']['parts'][0]['text']}"
+                return f"SUCCESS: {result['choices'][0]['message']['content']}"
                 
         except Exception as e:
             return f"ERROR: {str(e)}"
@@ -604,11 +600,11 @@ IMPORTANT RULES:
 
 Please provide a helpful response with general health information and home remedies."""
 
-            # Call Gemini API
-            response_text = self.call_gemini_api(prompt)
+            # Call OpenRouter API
+            response_text = self.call_openrouter_api(prompt)
             
             # Check if API call failed and provide fallback
-            if "Error calling Gemini API" in response_text or "API Error" in response_text:
+            if "Error calling OpenRouter API" in response_text or "API Error" in response_text:
                 # Fallback to RAG-only response
                 fallback_response = f"""Based on medical knowledge, here's some general information:
 
@@ -711,19 +707,9 @@ def main():
     with st.sidebar:
         st.header("🔧 System Status")
         
-        # Model Selection
-        st.subheader("🤖 AI Model Selection")
-        selected_model = st.selectbox(
-            "Choose Gemini Model:",
-            options=st.session_state.chatbot.available_models,
-            index=0,
-            help="Select which Gemini model to use for responses"
-        )
-        
-        # Update model if changed
-        if selected_model != st.session_state.chatbot.model_name:
-            st.session_state.chatbot.model_name = selected_model
-            st.rerun()
+        # Model is automatically selected
+        st.subheader("🤖 AI Model")
+        st.info(f"Using: {st.session_state.chatbot.model_name}")
         
         # Test API status
         api_status = st.session_state.chatbot.test_api_key()
@@ -738,74 +724,36 @@ def main():
             with st.expander("🔍 Simple API Test", expanded=False):
                 st.code(simple_test)
         else:
-            st.success("✅ Gemini API Ready")
+            st.success("✅ OpenRouter API Ready")
             st.markdown(f"**Model:** {api_status['working_model']}")
             with st.expander("🔍 API Test Result", expanded=False):
                 st.code(simple_test)
         
-        st.markdown("**API:** Google Gemini")
+        st.markdown("**API:** OpenRouter")
         st.markdown("**RAG:** Retrieval-Augmented Generation")
         st.markdown("**Medical Knowledge:** Enhanced")
         st.markdown("**HTTP Library:** urllib (No conflicts)")
         
-        # Model Information
-        st.markdown("---")
-        st.subheader("📋 Model Information")
-        
-        model_info = {
-            "gemini-2.0-flash-exp": "Latest experimental model with enhanced capabilities",
-            "gemini-1.5-pro": "High-performance model for complex tasks",
-            "gemini-1.5-flash": "Fast and efficient model for quick responses",
-            "gemini-pro": "Standard Gemini model with reliable performance",
-            "gemini-1.5-flash-001": "Alternative flash model variant"
-        }
-        
-        if selected_model in model_info:
-            st.info(f"**{selected_model}**: {model_info[selected_model]}")
-        else:
-            st.info(f"**{selected_model}**: Custom model configuration")
-        
-        # Model switching note
-        st.markdown("💡 **Note**: Changing models will test the new model automatically")
-        
-        # Model Status Check
-        if st.button("🔄 Test All Models"):
-            with st.spinner("Testing all available models..."):
-                model_results = {}
-                for model in st.session_state.chatbot.available_models:
-                    # Temporarily set the model
-                    original_model = st.session_state.chatbot.model_name
-                    st.session_state.chatbot.model_name = model
-                    
-                    # Test the model
-                    test_response = st.session_state.chatbot.call_gemini_api("Test")
-                    model_results[model] = "✅ Working" if "API Error" not in test_response else "❌ Failed"
-                    
-                    # Restore original model
-                    st.session_state.chatbot.model_name = original_model
-                
-                # Display results
-                st.markdown("### 🧪 Model Test Results")
-                for model, status in model_results.items():
-                    st.markdown(f"**{model}**: {status}")
-                
-                # Auto-select first working model
-                working_models = [model for model, status in model_results.items() if "✅" in status]
-                if working_models and st.session_state.chatbot.model_name not in working_models:
-                    st.session_state.chatbot.model_name = working_models[0]
-                    st.success(f"🔄 Auto-selected working model: {working_models[0]}")
-                    st.rerun()
+        # Simple API test
+        if st.button("🔄 Test API"):
+            with st.spinner("Testing API..."):
+                test_response = st.session_state.chatbot.call_openrouter_api("Hello")
+                if "API Error" not in test_response:
+                    st.success("✅ API is working!")
+                else:
+                    st.error("❌ API Error")
+                    st.code(test_response)
         
         # API Key help section
         if not api_status['valid']:
             st.markdown("---")
             st.markdown("### 🔑 Get API Key")
-            st.markdown("To enable Gemini AI features:")
-            st.markdown("1. Go to [Google AI Studio](https://aistudio.google.com/)")
-            st.markdown("2. Create a new project")
+            st.markdown("To enable OpenRouter AI features:")
+            st.markdown("1. Go to [OpenRouter](https://openrouter.ai/)")
+            st.markdown("2. Sign up for a free account")
             st.markdown("3. Generate an API key")
             st.markdown("4. Set environment variable:")
-            st.code("set GEMINI_API_KEY=your_api_key_here", language="bash")
+            st.code("set OPENROUTER_API_KEY=your_api_key_here", language="bash")
             st.markdown("5. Restart the application")
         
         st.markdown("---")
