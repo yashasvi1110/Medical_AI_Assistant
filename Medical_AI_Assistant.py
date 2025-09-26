@@ -18,9 +18,10 @@ class FixedRAGGeminiMedicalChatbot:
         """Initialize the fixed RAG Gemini medical chatbot."""
         self.disclaimer = "⚠️ **IMPORTANT DISCLAIMER**: I am not a medical professional. For diagnosis or treatment, consult a qualified healthcare provider."
         
-        # Your Gemini API key
-        self.api_key = "AIzaSyAaWucUUbxdeRPjkcwSi6TRFNAIv1U7mmw"
+        # Your Gemini API key - Replace with your actual API key
+        self.api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBlrgNbZbb8-i0b52gvtnlssDmtiI1ftwY")
         self.model_name = "gemini-1.5-flash"
+        self.available_models = ["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro", "gemini-1.5-flash-001"]
         
         # Medical knowledge base for RAG
         self.medical_knowledge = {
@@ -90,40 +91,306 @@ class FixedRAGGeminiMedicalChatbot:
             }
         }
         
-        # Medical keywords
+        # Medical keywords - Comprehensive list
         self.medical_keywords = [
-            'health', 'medical', 'disease', 'symptom', 'treatment', 'medicine',
-            'vitamin', 'nutrition', 'exercise', 'prevention', 'first aid',
-            'fever', 'pain', 'injury', 'burn', 'dehydration', 'stress',
-            'headache', 'cough', 'cold', 'flu', 'diabetes', 'blood pressure',
-            'heart', 'lung', 'stomach', 'skin', 'bone', 'muscle', 'joint',
-            'allergy', 'infection', 'wound', 'cut', 'bruise', 'swelling',
-            'nausea', 'dizziness', 'fatigue', 'sleep', 'diet', 'weight',
-            'home remedy', 'natural treatment', 'herbal', 'supplement',
-            'ache', 'sore', 'throat', 'back', 'neck', 'shoulder', 'knee',
-            'ankle', 'wrist', 'elbow', 'hip', 'chest', 'abdomen',
-            'tired', 'weak', 'dizzy', 'nauseous', 'vomiting', 'diarrhea',
-            'constipation', 'bloating', 'gas', 'indigestion', 'heartburn',
-            'insomnia', 'anxiety', 'depression', 'mood', 'mental health',
-            'breathing', 'shortness', 'wheezing', 'asthma', 'allergy',
-            'rash', 'itchy', 'redness', 'swelling', 'inflammation',
-            'cramps', 'spasms', 'stiffness', 'tension', 'soreness',
-            'period', 'menstrual', 'cramps', 'pms'
+            # General Health Terms
+            'health', 'medical', 'medicine', 'healthcare', 'wellness', 'fitness',
+            'disease', 'disorder', 'condition', 'syndrome', 'illness', 'sickness',
+            'symptom', 'symptoms', 'sign', 'signs', 'indication', 'manifestation',
+            'treatment', 'therapy', 'cure', 'healing', 'recovery', 'rehabilitation',
+            'diagnosis', 'diagnose', 'examination', 'checkup', 'screening', 'test',
+            'prevention', 'preventive', 'prophylaxis', 'immunization', 'vaccination',
+            'first aid', 'emergency', 'urgent', 'critical', 'acute', 'chronic',
+            
+            # Body Systems & Organs
+            'heart', 'cardiac', 'cardiovascular', 'circulation', 'blood', 'artery',
+            'vein', 'pulse', 'heartbeat', 'chest', 'chest pain', 'angina',
+            'lung', 'lungs', 'respiratory', 'breathing', 'breath', 'airway',
+            'stomach', 'gastric', 'digestive', 'gastrointestinal', 'intestine',
+            'liver', 'kidney', 'kidneys', 'bladder', 'urinary', 'urine',
+            'brain', 'neurological', 'nervous system', 'nerve', 'nerves',
+            'muscle', 'muscles', 'muscular', 'tendon', 'tendons', 'ligament',
+            'bone', 'bones', 'skeletal', 'spine', 'spinal', 'joint', 'joints',
+            'skin', 'dermatological', 'hair', 'nails', 'teeth', 'dental',
+            'eye', 'eyes', 'vision', 'visual', 'ear', 'ears', 'hearing',
+            'nose', 'nasal', 'throat', 'pharyngeal', 'mouth', 'oral',
+            
+            # Common Symptoms
+            'pain', 'ache', 'aching', 'sore', 'soreness', 'tender', 'tenderness',
+            'fever', 'temperature', 'hot', 'chills', 'sweating', 'sweat',
+            'headache', 'migraine', 'dizziness', 'vertigo', 'lightheaded',
+            'nausea', 'nauseous', 'vomiting', 'vomit', 'throwing up',
+            'diarrhea', 'loose stools', 'constipation', 'bowel movement',
+            'fatigue', 'tired', 'exhausted', 'weak', 'weakness', 'lethargy',
+            'sleep', 'sleeping', 'insomnia', 'sleepless', 'drowsy', 'drowsiness',
+            'appetite', 'hunger', 'thirst', 'dehydration', 'dehydrated',
+            'swelling', 'swollen', 'inflammation', 'inflamed', 'redness',
+            'rash', 'itchy', 'itching', 'burning', 'stinging', 'numbness',
+            'tingling', 'cramps', 'cramping', 'spasms', 'stiffness', 'rigidity',
+            'shortness of breath', 'wheezing', 'coughing', 'cough', 'sneezing',
+            'runny nose', 'congestion', 'stuffy nose', 'sore throat',
+            'chest pain', 'abdominal pain', 'stomach pain', 'belly pain',
+            'back pain', 'neck pain', 'shoulder pain', 'knee pain', 'joint pain',
+            
+            # Medical Conditions & Diseases
+            'diabetes', 'diabetic', 'blood sugar', 'glucose', 'insulin',
+            'hypertension', 'high blood pressure', 'low blood pressure',
+            'heart disease', 'heart attack', 'stroke', 'cardiac arrest',
+            'asthma', 'bronchitis', 'pneumonia', 'tuberculosis', 'covid',
+            'cancer', 'tumor', 'tumors', 'malignant', 'benign', 'metastasis',
+            'arthritis', 'rheumatoid', 'osteoarthritis', 'gout', 'fibromyalgia',
+            'depression', 'anxiety', 'panic', 'panic attack', 'mental health',
+            'bipolar', 'schizophrenia', 'ptsd', 'trauma', 'stress', 'stressed',
+            'allergy', 'allergic', 'anaphylaxis', 'hay fever', 'asthma',
+            'infection', 'bacterial', 'viral', 'fungal', 'sepsis', 'fever',
+            'influenza', 'flu', 'cold', 'common cold', 'sinusitis', 'bronchitis',
+            'pneumonia', 'tuberculosis', 'hepatitis', 'hiv', 'aids',
+            'migraine', 'epilepsy', 'seizure', 'seizures', 'parkinson',
+            'alzheimer', 'dementia', 'memory loss', 'confusion',
+            'anemia', 'iron deficiency', 'vitamin deficiency', 'malnutrition',
+            'obesity', 'overweight', 'underweight', 'eating disorder',
+            'thyroid', 'hypothyroidism', 'hyperthyroidism', 'hormone',
+            'kidney disease', 'liver disease', 'cirrhosis', 'hepatitis',
+            'ulcer', 'ulcers', 'gastritis', 'acid reflux', 'heartburn',
+            'ibs', 'crohn', 'colitis', 'diverticulitis', 'hemorrhoids',
+            
+            # Medications & Treatments
+            'medicine', 'medication', 'drug', 'drugs', 'pill', 'pills',
+            'tablet', 'capsule', 'injection', 'inject', 'shot', 'shots',
+            'antibiotic', 'antibiotics', 'painkiller', 'painkillers',
+            'antidepressant', 'antidepressants', 'anxiety medication',
+            'blood pressure medication', 'diabetes medication', 'insulin',
+            'chemotherapy', 'radiation', 'surgery', 'operation', 'procedure',
+            'therapy', 'physical therapy', 'occupational therapy',
+            'psychotherapy', 'counseling', 'rehabilitation',
+            'home remedy', 'natural treatment', 'herbal', 'herbs',
+            'supplement', 'supplements', 'vitamin', 'vitamins', 'mineral',
+            'probiotic', 'probiotics', 'antioxidant', 'antioxidants',
+            
+            # Body Parts & Locations
+            'head', 'forehead', 'temple', 'skull', 'brain', 'face',
+            'eye', 'eyes', 'eyebrow', 'eyelid', 'eyelash', 'pupil',
+            'ear', 'ears', 'earlobe', 'eardrum', 'hearing',
+            'nose', 'nostril', 'nasal', 'sinus', 'sinuses',
+            'mouth', 'lips', 'teeth', 'tooth', 'gums', 'tongue',
+            'throat', 'pharynx', 'larynx', 'voice box', 'vocal cords',
+            'neck', 'cervical', 'throat', 'windpipe', 'trachea',
+            'chest', 'breast', 'breasts', 'rib', 'ribs', 'sternum',
+            'back', 'spine', 'vertebrae', 'spinal cord', 'disc',
+            'shoulder', 'shoulders', 'arm', 'arms', 'elbow', 'elbows',
+            'wrist', 'wrists', 'hand', 'hands', 'finger', 'fingers',
+            'thumb', 'thumb', 'nail', 'nails', 'palm', 'knuckle',
+            'hip', 'hips', 'pelvis', 'pelvic', 'groin',
+            'leg', 'legs', 'thigh', 'thighs', 'knee', 'knees',
+            'ankle', 'ankles', 'foot', 'feet', 'toe', 'toes',
+            'heel', 'heels', 'arch', 'sole', 'instep',
+            'abdomen', 'stomach', 'belly', 'tummy', 'waist',
+            'liver', 'kidney', 'kidneys', 'bladder', 'intestine',
+            'lung', 'lungs', 'heart', 'brain', 'spine',
+            
+            # Emergency & Urgent Care
+            'emergency', 'urgent', 'critical', 'acute', 'severe',
+            'ambulance', 'paramedic', 'er', 'emergency room',
+            'trauma', 'injury', 'injuries', 'wound', 'wounds',
+            'cut', 'cuts', 'laceration', 'bruise', 'bruises', 'contusion',
+            'burn', 'burns', 'scald', 'scalding', 'frostbite',
+            'fracture', 'broken', 'break', 'sprain', 'strain',
+            'dislocation', 'concussion', 'head injury', 'bleeding',
+            'hemorrhage', 'shock', 'unconscious', 'unresponsive',
+            'choking', 'drowning', 'poisoning', 'overdose',
+            'allergic reaction', 'anaphylaxis', 'seizure', 'stroke',
+            'heart attack', 'cardiac arrest', 'chest pain',
+            'difficulty breathing', 'shortness of breath',
+            
+            # Women's Health
+            'pregnancy', 'pregnant', 'prenatal', 'antenatal',
+            'labor', 'delivery', 'birth', 'childbirth', 'miscarriage',
+            'menstruation', 'menstrual', 'period', 'pms', 'menopause',
+            'ovulation', 'fertility', 'infertility', 'contraception',
+            'birth control', 'pills', 'iud', 'condom', 'condoms',
+            'breastfeeding', 'lactation', 'mastitis', 'breast cancer',
+            'cervical cancer', 'ovarian cancer', 'endometriosis',
+            'fibroids', 'cysts', 'polycystic', 'pcos',
+            
+            # Men's Health
+            'prostate', 'prostate cancer', 'testicular', 'testicular cancer',
+            'erectile dysfunction', 'impotence', 'infertility',
+            'male menopause', 'andropause', 'testosterone',
+            
+            # Children's Health
+            'pediatric', 'pediatrics', 'child', 'children', 'baby', 'babies',
+            'infant', 'infants', 'toddler', 'toddlers', 'adolescent',
+            'teenager', 'teen', 'growth', 'development', 'milestone',
+            'vaccination', 'immunization', 'shots', 'vaccines',
+            'fever', 'teething', 'colic', 'diaper rash', 'cradle cap',
+            'adhd', 'autism', 'developmental delay', 'learning disability',
+            
+            # Mental Health
+            'mental health', 'psychiatric', 'psychological', 'psychology',
+            'depression', 'depressed', 'sad', 'sadness', 'mood', 'moody',
+            'anxiety', 'anxious', 'worry', 'worried', 'panic', 'panic attack',
+            'phobia', 'phobias', 'fear', 'fears', 'trauma', 'ptsd',
+            'bipolar', 'manic', 'mania', 'schizophrenia', 'psychosis',
+            'eating disorder', 'anorexia', 'bulimia', 'binge eating',
+            'addiction', 'alcoholism', 'drug addiction', 'substance abuse',
+            'suicide', 'suicidal', 'self-harm', 'self injury',
+            'therapy', 'counseling', 'psychotherapy', 'psychiatrist',
+            'psychologist', 'therapist', 'counselor',
+            
+            # Nutrition & Diet
+            'nutrition', 'nutritious', 'diet', 'dietary', 'food', 'eating',
+            'calorie', 'calories', 'protein', 'carbohydrate', 'fat', 'fiber',
+            'vitamin', 'vitamins', 'mineral', 'minerals', 'supplement',
+            'supplements', 'herbal', 'herbs', 'natural', 'organic',
+            'allergy', 'allergic', 'intolerance', 'lactose', 'gluten',
+            'diabetes', 'diabetic', 'blood sugar', 'glucose', 'insulin',
+            'obesity', 'overweight', 'underweight', 'weight loss',
+            'weight gain', 'metabolism', 'metabolic', 'cholesterol',
+            'sodium', 'salt', 'sugar', 'sweet', 'sweetener',
+            'hydration', 'water', 'dehydration', 'dehydrated',
+            'caffeine', 'alcohol', 'smoking', 'tobacco', 'nicotine',
+            
+            # Exercise & Fitness
+            'exercise', 'fitness', 'workout', 'training', 'physical activity',
+            'cardio', 'cardiovascular', 'strength', 'muscle', 'muscles',
+            'flexibility', 'stretching', 'yoga', 'pilates', 'running',
+            'walking', 'cycling', 'swimming', 'gym', 'gymnasium',
+            'sports', 'athletic', 'athlete', 'performance', 'endurance',
+            'rehabilitation', 'rehab', 'physical therapy', 'pt',
+            'injury', 'injuries', 'prevention', 'warm-up', 'cool-down',
+            
+            # Aging & Elderly
+            'aging', 'elderly', 'senior', 'seniors', 'geriatric', 'geriatrics',
+            'dementia', 'alzheimer', 'memory', 'cognitive', 'cognition',
+            'arthritis', 'osteoporosis', 'bone density', 'fracture',
+            'fall', 'falls', 'balance', 'mobility', 'independence',
+            'caregiver', 'caregiving', 'nursing home', 'assisted living',
+            'medication', 'medications', 'polypharmacy', 'side effects',
+            
+            # Alternative Medicine
+            'alternative medicine', 'complementary', 'holistic', 'natural',
+            'homeopathy', 'acupuncture', 'chiropractic', 'massage',
+            'meditation', 'mindfulness', 'relaxation', 'stress management',
+            'aromatherapy', 'essential oils', 'herbal medicine', 'herbs',
+            'supplements', 'vitamins', 'minerals', 'probiotics',
+            'yoga', 'tai chi', 'qigong', 'reflexology', 'reiki',
+            
+            # Medical Equipment & Devices
+            'stethoscope', 'thermometer', 'blood pressure cuff', 'monitor',
+            'defibrillator', 'pacemaker', 'insulin pump', 'glucose meter',
+            'inhaler', 'nebulizer', 'oxygen', 'ventilator', 'wheelchair',
+            'walker', 'cane', 'crutches', 'brace', 'cast', 'splint',
+            'bandage', 'bandages', 'gauze', 'tape', 'adhesive',
+            'syringe', 'needle', 'needles', 'injection', 'iv', 'catheter',
+            
+            # Medical Specialties
+            'cardiology', 'cardiac', 'dermatology', 'dermatologist',
+            'endocrinology', 'endocrinologist', 'gastroenterology',
+            'gastroenterologist', 'neurology', 'neurologist',
+            'oncology', 'oncologist', 'orthopedics', 'orthopedist',
+            'pediatrics', 'pediatrician', 'psychiatry', 'psychiatrist',
+            'radiology', 'radiologist', 'surgery', 'surgeon',
+            'urology', 'urologist', 'gynecology', 'gynecologist',
+            'ophthalmology', 'ophthalmologist', 'otolaryngology',
+            'ent', 'anesthesiology', 'anesthesiologist', 'pathology',
+            'pathologist', 'emergency medicine', 'family medicine',
+            'internal medicine', 'geriatrics', 'geriatrician'
         ]
         
         # Non-medical keywords
         self.non_medical_keywords = [
-            'mathematics', 'math', 'physics', 'chemistry', 'biology',
-            'history', 'geography', 'politics', 'government', 'election',
-            'weather', 'climate', 'sports', 'football', 'cricket', 'basketball',
-            'entertainment', 'movie', 'music', 'dance', 'art', 'painting',
+            # Mathematics & Science
+            'mathematics', 'math', 'algebra', 'geometry', 'calculus', 'statistics',
+            'physics', 'chemistry', 'biology', 'science', 'scientific', 'research',
+            'experiment', 'laboratory', 'lab', 'hypothesis', 'theory', 'formula',
+            'equation', 'calculation', 'computation', 'data', 'analysis',
+            
+            # History & Geography
+            'history', 'historical', 'ancient', 'medieval', 'modern', 'war',
+            'battle', 'empire', 'kingdom', 'civilization', 'culture', 'heritage',
+            'geography', 'country', 'nation', 'continent', 'ocean', 'mountain',
+            'river', 'city', 'capital', 'population', 'demographics',
+            
+            # Politics & Government
+            'politics', 'political', 'government', 'election', 'vote', 'voting',
+            'president', 'prime minister', 'parliament', 'congress', 'senate',
+            'democracy', 'republic', 'monarchy', 'dictatorship', 'policy',
+            'law', 'legal', 'court', 'judge', 'justice', 'rights', 'freedom',
+            
+            # Weather & Environment
+            'weather', 'climate', 'temperature', 'rain', 'snow', 'storm',
+            'hurricane', 'tornado', 'forecast', 'season', 'summer', 'winter',
+            'spring', 'autumn', 'environment', 'pollution', 'global warming',
+            'renewable energy', 'sustainability', 'conservation',
+            
+            # Sports & Recreation
+            'sports', 'football', 'soccer', 'basketball', 'cricket', 'tennis',
+            'golf', 'baseball', 'hockey', 'swimming', 'running', 'cycling',
+            'gym', 'fitness', 'exercise', 'workout', 'training', 'competition',
+            'tournament', 'championship', 'olympics', 'recreation', 'hobby',
+            
+            # Entertainment & Media
+            'entertainment', 'movie', 'film', 'cinema', 'television', 'tv',
+            'music', 'song', 'album', 'concert', 'dance', 'dancing',
+            'art', 'painting', 'drawing', 'sculpture', 'gallery', 'museum',
+            'theater', 'theatre', 'play', 'drama', 'comedy', 'actor',
+            'actress', 'director', 'producer', 'celebrity', 'famous',
+            
+            # Food & Cooking
             'cooking', 'recipe', 'food recipe', 'restaurant', 'cuisine',
-            'travel', 'tourism', 'vacation', 'hotel', 'booking',
-            'shopping', 'buy', 'sell', 'price', 'cost', 'money',
+            'chef', 'kitchen', 'ingredients', 'meal', 'breakfast', 'lunch',
+            'dinner', 'snack', 'beverage', 'drink', 'coffee', 'tea',
+            'wine', 'beer', 'alcohol', 'diet', 'nutrition', 'calories',
+            
+            # Travel & Tourism
+            'travel', 'tourism', 'vacation', 'holiday', 'trip', 'journey',
+            'hotel', 'booking', 'reservation', 'flight', 'airplane', 'airport',
+            'train', 'bus', 'car', 'driving', 'road', 'highway',
+            'passport', 'visa', 'destination', 'sightseeing', 'tour',
+            
+            # Shopping & Commerce
+            'shopping', 'buy', 'sell', 'purchase', 'price', 'cost', 'money',
+            'store', 'shop', 'market', 'mall', 'online', 'ecommerce',
+            'product', 'brand', 'advertisement', 'marketing', 'sales',
+            'discount', 'offer', 'deal', 'bargain', 'payment', 'credit',
+            
+            # Technology & Computing
             'technology', 'computer', 'programming', 'coding', 'software',
-            'finance', 'banking', 'investment', 'stock', 'trading',
-            'education', 'school', 'college', 'university', 'study',
-            'job', 'career', 'employment', 'work', 'business'
+            'hardware', 'internet', 'website', 'app', 'application',
+            'mobile', 'phone', 'smartphone', 'tablet', 'laptop', 'desktop',
+            'gaming', 'video game', 'console', 'ai', 'artificial intelligence',
+            'machine learning', 'data science', 'cybersecurity', 'blockchain',
+            
+            # Finance & Economics
+            'finance', 'banking', 'investment', 'stock', 'trading', 'market',
+            'economy', 'economic', 'business', 'company', 'corporation',
+            'profit', 'revenue', 'income', 'salary', 'wage', 'budget',
+            'loan', 'credit', 'debt', 'insurance', 'tax', 'accounting',
+            
+            # Education & Learning
+            'education', 'school', 'college', 'university', 'study', 'studying',
+            'student', 'teacher', 'professor', 'academic', 'degree', 'diploma',
+            'course', 'class', 'lesson', 'lecture', 'homework', 'exam',
+            'test', 'grade', 'scholarship', 'tuition', 'campus',
+            
+            # Work & Career
+            'job', 'career', 'employment', 'work', 'working', 'office',
+            'meeting', 'project', 'task', 'deadline', 'boss', 'manager',
+            'colleague', 'employee', 'employer', 'interview', 'resume',
+            'application', 'hiring', 'firing', 'promotion', 'retirement',
+            
+            # Social & Relationships
+            'relationship', 'dating', 'marriage', 'wedding', 'family',
+            'friend', 'friendship', 'social', 'party', 'celebration',
+            'birthday', 'anniversary', 'holiday', 'festival', 'event',
+            'community', 'society', 'culture', 'tradition', 'custom',
+            
+            # Miscellaneous
+            'fashion', 'clothing', 'style', 'beauty', 'cosmetics',
+            'home', 'house', 'apartment', 'furniture', 'decoration',
+            'garden', 'plant', 'flower', 'pet', 'animal', 'nature',
+            'book', 'reading', 'writing', 'language', 'translation',
+            'news', 'journalism', 'media', 'communication', 'conversation'
         ]
     
     def is_medical_query(self, query: str) -> bool:
@@ -198,34 +465,110 @@ class FixedRAGGeminiMedicalChatbot:
         return "General medical information"
     
     def call_gemini_api(self, prompt: str) -> str:
-        """Call Gemini API using urllib."""
+        """Call Gemini API using urllib with multiple model fallbacks."""
+        data = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt
+                }]
+            }]
+        }
+        
+        # Convert data to JSON
+        json_data = json.dumps(data).encode('utf-8')
+        
+        # Try different API endpoints
+        endpoints = [
+            "https://generativelanguage.googleapis.com/v1beta/models",
+            "https://generativelanguage.googleapis.com/v1/models"
+        ]
+        
+        # Try each endpoint with each model
+        for endpoint in endpoints:
+            for model in self.available_models:
+                try:
+                    url = f"{endpoint}/{model}:generateContent"
+                    
+                    # Create request
+                    req = urllib.request.Request(
+                        f"{url}?key={self.api_key}",
+                        data=json_data,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    # Make request
+                    with urllib.request.urlopen(req) as response:
+                        result = json.loads(response.read().decode('utf-8'))
+                        # Update the working model name
+                        self.model_name = model
+                        return result['candidates'][0]['content']['parts'][0]['text']
+                        
+                except urllib.error.HTTPError as e:
+                    error_details = f"Model: {model}, Endpoint: {endpoint}, Code: {e.code}"
+                    if e.code == 404:
+                        # Try next model
+                        continue
+                    elif e.code == 403:
+                        return f"API Error: Permission denied. {error_details}. Please check your API key permissions."
+                    elif e.code == 400:
+                        try:
+                            error_body = e.read().decode('utf-8')
+                            return f"API Error: Bad request. {error_details}. Response: {error_body}"
+                        except:
+                            return f"API Error: Bad request. {error_details}. Please check your API key and request format."
+                    else:
+                        return f"API Error: {e.code} - {error_details}. {str(e)}"
+                except Exception as e:
+                    # Try next model
+                    continue
+        
+        # If all models and endpoints failed
+        return f"API Error: All models and endpoints unavailable. Please check your API key and internet connection."
+    
+    def test_api_key(self) -> Dict[str, Any]:
+        """Test if the API key is valid by making a simple request."""
+        test_prompt = "Hello"
+        response = self.call_gemini_api(test_prompt)
+        
+        if "API Error" in response or "Error calling Gemini API" in response:
+            return {
+                'valid': False,
+                'error': response,
+                'working_model': None
+            }
+        else:
+            return {
+                'valid': True,
+                'error': None,
+                'working_model': self.model_name
+            }
+    
+    def test_simple_api_call(self) -> str:
+        """Make a simple test call to verify API connectivity."""
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent"
+            # Test with a very simple request
+            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
             data = {
                 "contents": [{
                     "parts": [{
-                        "text": prompt
+                        "text": "Hi"
                     }]
                 }]
             }
             
-            # Convert data to JSON
             json_data = json.dumps(data).encode('utf-8')
-            
-            # Create request
             req = urllib.request.Request(
                 f"{url}?key={self.api_key}",
                 data=json_data,
                 headers={'Content-Type': 'application/json'}
             )
             
-            # Make request
             with urllib.request.urlopen(req) as response:
                 result = json.loads(response.read().decode('utf-8'))
-                return result['candidates'][0]['content']['parts'][0]['text']
+                return f"SUCCESS: {result['candidates'][0]['content']['parts'][0]['text']}"
                 
         except Exception as e:
-            return f"Error calling Gemini API: {str(e)}"
+            return f"ERROR: {str(e)}"
     
     def chat(self, query: str) -> Dict[str, Any]:
         """Main chat function using RAG with Gemini API."""
@@ -263,6 +606,28 @@ Please provide a helpful response with general health information and home remed
 
             # Call Gemini API
             response_text = self.call_gemini_api(prompt)
+            
+            # Check if API call failed and provide fallback
+            if "Error calling Gemini API" in response_text or "API Error" in response_text:
+                # Fallback to RAG-only response
+                fallback_response = f"""Based on medical knowledge, here's some general information:
+
+{medical_context}
+
+For your specific question: {query}
+
+Please note that this is general health information only. For personalized medical advice, please consult with a qualified healthcare provider.
+
+{self.disclaimer}"""
+                
+                return {
+                    'response': fallback_response,
+                    'is_medical': True,
+                    'sources': ['rag_medical_knowledge_fallback'],
+                    'disclaimer': self.disclaimer,
+                    'model': 'RAG-only (API unavailable)',
+                    'rag': True
+                }
             
             # Ensure disclaimer is included
             if self.disclaimer not in response_text:
@@ -345,12 +710,103 @@ def main():
     # Sidebar
     with st.sidebar:
         st.header("🔧 System Status")
-        st.success("✅ Gemini API Ready")
-        st.markdown(f"**Model:** {st.session_state.chatbot.model_name}")
+        
+        # Model Selection
+        st.subheader("🤖 AI Model Selection")
+        selected_model = st.selectbox(
+            "Choose Gemini Model:",
+            options=st.session_state.chatbot.available_models,
+            index=0,
+            help="Select which Gemini model to use for responses"
+        )
+        
+        # Update model if changed
+        if selected_model != st.session_state.chatbot.model_name:
+            st.session_state.chatbot.model_name = selected_model
+            st.rerun()
+        
+        # Test API status
+        api_status = st.session_state.chatbot.test_api_key()
+        simple_test = st.session_state.chatbot.test_simple_api_call()
+        
+        if not api_status['valid']:
+            st.warning("⚠️ API Unavailable - Using RAG Fallback")
+            st.markdown("**Model:** RAG-only Mode")
+            if api_status['error']:
+                with st.expander("🔍 API Error Details", expanded=True):
+                    st.code(api_status['error'])
+            with st.expander("🔍 Simple API Test", expanded=False):
+                st.code(simple_test)
+        else:
+            st.success("✅ Gemini API Ready")
+            st.markdown(f"**Model:** {api_status['working_model']}")
+            with st.expander("🔍 API Test Result", expanded=False):
+                st.code(simple_test)
+        
         st.markdown("**API:** Google Gemini")
         st.markdown("**RAG:** Retrieval-Augmented Generation")
         st.markdown("**Medical Knowledge:** Enhanced")
         st.markdown("**HTTP Library:** urllib (No conflicts)")
+        
+        # Model Information
+        st.markdown("---")
+        st.subheader("📋 Model Information")
+        
+        model_info = {
+            "gemini-2.0-flash-exp": "Latest experimental model with enhanced capabilities",
+            "gemini-1.5-pro": "High-performance model for complex tasks",
+            "gemini-1.5-flash": "Fast and efficient model for quick responses",
+            "gemini-pro": "Standard Gemini model with reliable performance",
+            "gemini-1.5-flash-001": "Alternative flash model variant"
+        }
+        
+        if selected_model in model_info:
+            st.info(f"**{selected_model}**: {model_info[selected_model]}")
+        else:
+            st.info(f"**{selected_model}**: Custom model configuration")
+        
+        # Model switching note
+        st.markdown("💡 **Note**: Changing models will test the new model automatically")
+        
+        # Model Status Check
+        if st.button("🔄 Test All Models"):
+            with st.spinner("Testing all available models..."):
+                model_results = {}
+                for model in st.session_state.chatbot.available_models:
+                    # Temporarily set the model
+                    original_model = st.session_state.chatbot.model_name
+                    st.session_state.chatbot.model_name = model
+                    
+                    # Test the model
+                    test_response = st.session_state.chatbot.call_gemini_api("Test")
+                    model_results[model] = "✅ Working" if "API Error" not in test_response else "❌ Failed"
+                    
+                    # Restore original model
+                    st.session_state.chatbot.model_name = original_model
+                
+                # Display results
+                st.markdown("### 🧪 Model Test Results")
+                for model, status in model_results.items():
+                    st.markdown(f"**{model}**: {status}")
+                
+                # Auto-select first working model
+                working_models = [model for model, status in model_results.items() if "✅" in status]
+                if working_models and st.session_state.chatbot.model_name not in working_models:
+                    st.session_state.chatbot.model_name = working_models[0]
+                    st.success(f"🔄 Auto-selected working model: {working_models[0]}")
+                    st.rerun()
+        
+        # API Key help section
+        if not api_status['valid']:
+            st.markdown("---")
+            st.markdown("### 🔑 Get API Key")
+            st.markdown("To enable Gemini AI features:")
+            st.markdown("1. Go to [Google AI Studio](https://aistudio.google.com/)")
+            st.markdown("2. Create a new project")
+            st.markdown("3. Generate an API key")
+            st.markdown("4. Set environment variable:")
+            st.code("set GEMINI_API_KEY=your_api_key_here", language="bash")
+            st.markdown("5. Restart the application")
         
         st.markdown("---")
         
