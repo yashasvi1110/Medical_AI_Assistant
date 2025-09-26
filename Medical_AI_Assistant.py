@@ -19,7 +19,7 @@ class FixedRAGGeminiMedicalChatbot:
         self.disclaimer = "⚠️ **IMPORTANT DISCLAIMER**: I am not a medical professional. For diagnosis or treatment, consult a qualified healthcare provider."
         
         # Your Gemini API key - Replace with your actual API key
-        self.api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBlrgNbZbb8-i0b52gvtnlssDmtiI1ftwY")
+        self.api_key = os.getenv("GEMINI_API_KEY", "AIzaSyDU1AlMjYpUTYsq44eWzboV3Km4fQ-5SrU")
         self.model_name = "gemini-1.5-flash"
         self.available_models = ["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro", "gemini-1.5-flash-001"]
         
